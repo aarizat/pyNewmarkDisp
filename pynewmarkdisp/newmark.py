@@ -16,6 +16,8 @@ from matplotlib.ticker import FormatStrFormatter
 from numba import njit
 
 from pynewmarkdisp.empir_corr import correlations
+from pynewmarkdisp.newmark_core import first_newmark_integration
+
 
 # plt.style.use("default")
 mpl.rcParams.update(
@@ -31,70 +33,70 @@ mpl.rcParams.update(
 )
 
 
-@njit(fastmath=True, cache=True)
-def trapz(y, x):
-    """Calculate the area under de curve y=f(x) by the trapezoidal rule method.
+# @njit(fastmath=True, cache=True)
+# def trapz(y, x):
+#     """Calculate the area under de curve y=f(x) by the trapezoidal rule method.
 
-    This funtion is optimized for speed using Numba.
+#     This funtion is optimized for speed using Numba.
 
-    Parameters
-    ----------
-    y : (n, ) ndarray
-        1D array with the values of the function y=f(x).
-    x : (n, ) ndarray
-        1D array with the values of the independent variable x.
+#     Parameters
+#     ----------
+#     y : (n, ) ndarray
+#         1D array with the values of the function y=f(x).
+#     x : (n, ) ndarray
+#         1D array with the values of the independent variable x.
 
-    Returns
-    -------
-    area : float
-        Area under the curve y=f(x) calculated by the trapezoidal rule method.
-    """
-    return 0.5 * ((x[1:] - x[:-1]) * (y[1:] + y[:-1])).sum()
+#     Returns
+#     -------
+#     area : float
+#         Area under the curve y=f(x) calculated by the trapezoidal rule method.
+#     """
+#     return 0.5 * ((x[1:] - x[:-1]) * (y[1:] + y[:-1])).sum()
 
 
-@njit(fastmath=True, cache=True)
-def first_newmark_integration(time, accel, ay):
-    """Perform the first integration of the Newmark method.
+# @njit(fastmath=True, cache=True)
+# def first_newmark_integration(time, accel, ay):
+#     """Perform the first integration of the Newmark method.
 
-    The integration is performed using the trapezoidal rule. It accounts for
-    energy dissipation at each peak above the critical acceleration by
-    subtracting the area between $y=a_y$ and $y=a(t)$ after the peak until the
-    velocity is zero.
+#     The integration is performed using the trapezoidal rule. It accounts for
+#     energy dissipation at each peak above the critical acceleration by
+#     subtracting the area between $y=a_y$ and $y=a(t)$ after the peak until the
+#     velocity is zero.
 
-    This funtion is optimized for speed using Numba.
+#     This funtion is optimized for speed using Numba.
 
-    Parameters
-    ----------
-    time : (n, ) ndarray
-        1D array with the time series of the earthquake record, in units
-        consistent with ``accel`` and ``ay``.
-    accel : (n, ) ndarray
-        1D array with the acceleration series of the earthquake record, in the
-        same units as ``ay``.
-    ay : int or float
-        Critical acceleration, in the same units as ``accel``.
+#     Parameters
+#     ----------
+#     time : (n, ) ndarray
+#         1D array with the time series of the earthquake record, in units
+#         consistent with ``accel`` and ``ay``.
+#     accel : (n, ) ndarray
+#         1D array with the acceleration series of the earthquake record, in the
+#         same units as ``ay``.
+#     ay : int or float
+#         Critical acceleration, in the same units as ``accel``.
 
-    Returns
-    -------
-    vel : (n, ) ndarray
-        1D array with the velocity series obtained by the first integration of
-        the Newmark method. Units are consistent with ``accel`` and ``ay``.
-    """
-    length = len(time)
-    vel = np.zeros(length)
-    for i in np.arange(1, length, 1):
-        if accel[i] > ay:
-            v = vel[i - 1] + trapz(
-                y=accel[i - 1 : i + 1] - ay, x=time[i - 1 : i + 1]
-            )
-        elif accel[i] < ay and vel[i - 1] > 0:
-            v = vel[i - 1] - abs(
-                trapz(y=accel[i - 1 : i + 1], x=time[i - 1 : i + 1])
-            )
-        else:
-            v = 0
-        vel[i] = max(v, 0)
-    return vel
+#     Returns
+#     -------
+#     vel : (n, ) ndarray
+#         1D array with the velocity series obtained by the first integration of
+#         the Newmark method. Units are consistent with ``accel`` and ``ay``.
+#     """
+#     length = len(time)
+#     vel = np.zeros(length)
+#     for i in np.arange(1, length, 1):
+#         if accel[i] > ay:
+#             v = vel[i - 1] + trapz(
+#                 y=accel[i - 1 : i + 1] - ay, x=time[i - 1 : i + 1]
+#             )
+#         elif accel[i] < ay and vel[i - 1] > 0:
+#             v = vel[i - 1] - abs(
+#                 trapz(y=accel[i - 1 : i + 1], x=time[i - 1 : i + 1])
+#             )
+#         else:
+#             v = 0
+#         vel[i] = max(v, 0)
+#     return vel
 
 
 def direct_newmark(time, accel, ky, g):
