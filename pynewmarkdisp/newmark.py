@@ -13,10 +13,10 @@ from scipy.integrate import cumulative_trapezoid as cumul_integral
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
-from numba import njit
+# from numba import njit
 
 from pynewmarkdisp.empir_corr import correlations
-from pynewmarkdisp.newmark_core import first_newmark_integration
+from newmark_rs import first_newmark_integration
 
 
 # plt.style.use("default")
@@ -86,44 +86,26 @@ mpl.rcParams.update(
 #     vel = np.zeros(length)
 #     for i in np.arange(1, length, 1):
 #         if accel[i] > ay:
+#             # print("accel[i] > ay :", accel[i], ay)
 #             v = vel[i - 1] + trapz(
 #                 y=accel[i - 1 : i + 1] - ay, x=time[i - 1 : i + 1]
 #             )
+#             # print("v", v)
 #         elif accel[i] < ay and vel[i - 1] > 0:
+#             # print("accel[i] < ay and vel[i-1] > 0")
 #             v = vel[i - 1] - abs(
 #                 trapz(y=accel[i - 1 : i + 1], x=time[i - 1 : i + 1])
 #             )
+#             # print("v", v)
 #         else:
 #             v = 0
 #         vel[i] = max(v, 0)
+#         # print("vel", vel[i])
+#         # print("*" * 10)
 #     return vel
 
 
 def direct_newmark(time, accel, ky, g):
-    """
-    Calculate the permanent displacements using the direct Newmark method.
-
-    Parameters
-    ----------
-    time : (n,) ndarray
-        1D array with the time series of the earthquake record, in [s].
-    accel : (n,) ndarray
-        1D array with the acceleration series of the earthquake record.
-    ky : float
-        Critical seismic coefficient (yield coefficient).
-    g : float
-        Acceleration of gravity, in the same units as ``accel``. For example,
-        if ``accel`` is in [m/s²], ``g`` should be equal to 9.81; if ``accel``
-        is as a fraction of gravity, ``g`` should be equal to 1.
-
-    Returns
-    -------
-    newmark_str : dict
-        Dictionary with the structure from the Newmark's method. The structure
-        includes time, acceleration, velocity, and displacements series, as
-        well as the critical seismic coefficient and accelerarion, and the
-        permanent displacement calculated (in meters).
-    """
     length = len(time)
     ay = 9.81 * ky  # Yield acceleration to SI units
     accel = 9.81 * accel / g  # Earthquake acceleration to SI units

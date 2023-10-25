@@ -7,9 +7,17 @@ import numpy as np
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+
 extensions = [
-    Extension("pynewmarkdisp.newmark_core", ["pynewmarkdisp/newmark_core.pyx"]),
+    Extension(
+        name="pynewmarkdisp.newmark_core",
+        sources=["pynewmarkdisp/newmark_core.pyx"],
+        define_macros=[('CYTHON_TRACE', '1')],
+        extra_compile_args=['-fopenmp'],
+        extra_link_args=['-fopenmp'],
+    ),
 ]
+
 
 setup(
     name="pynewmarkdisp",
@@ -17,6 +25,6 @@ setup(
     description="My library's short description.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    ext_modules = cythonize(extensions),
+    ext_modules = cythonize(extensions, compiler_directives={'language_level': 3, 'linetrace': True, "binding": True}),
     include_dirs=[np.get_include()]
 )
