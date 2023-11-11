@@ -9,14 +9,14 @@ method.
 """
 
 import numpy as np
-from scipy.integrate import cumulative_trapezoid as cumul_integral
+# from scipy.integrate import cumulative_trapezoid as cumul_integral
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 # from numba import njit
 
 from pynewmarkdisp.empir_corr import correlations
-from newmark_rs import first_newmark_integration
+from newmark_rs import first_newmark_integration, cumul_integral
 
 
 # plt.style.use("default")
@@ -118,7 +118,7 @@ def direct_newmark(time, accel, ky, g):
         # Velocity
         vel = first_newmark_integration(time, accel, ay)
         # Displacement
-        disp = cumul_integral(y=vel, x=time, initial=0)
+        disp = cumul_integral(y=vel, x=time)
     else:  # The slope is stable even under seudostatic condition
         vel = np.zeros_like(accel)
         disp = np.zeros_like(accel)

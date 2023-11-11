@@ -32,8 +32,28 @@ fn first_newmark_integration(_py: Python, time: &PyArray1<f64>, accel: &PyArray1
 }
 
 
+#[pyfunction]
+fn cumul_integral(_py: Python, y: &PyArray1<f64>, x: &PyArray1<f64>) -> PyResult<Py<PyArray1<f64>>> {
+    let y = unsafe {
+        y.as_slice().unwrap()
+    };
+    let x = unsafe {
+        x.as_slice().unwrap()
+    };
+    let mut cum_area = vec![0.0; x.len()];
+
+    for i in 0..x.len() - 1 {
+        let trap_area = (x[i + 1] - x[i]) * (y[i + 1] + y[i]) / 2.0;
+        cum_area[i + 1] = cum_area[i] + trap_area;
+    }
+
+    Ok(cum_area.into_pyarray(_py).to_owned())
+}
+
+
 #[pymodule]
 fn newmark_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(first_newmark_integration, m)?)?;
+    m.add_function(wrap_pyfunction!(cumul_integral, m)?)?;
     Ok(())
 }
